@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect, useRef } from "react";
 import { UploadCloud, FileText, Brain, Activity, List, Trophy, ChevronDown, CheckCircle, AlertCircle, X, RefreshCw, Loader2, Building2, Trash2, Save, Send, Check, AlertTriangle, Clock, Calendar, ExternalLink } from "lucide-react";
@@ -436,7 +436,7 @@ export default function AnalysisPage() {
     if (!file) return;
 
     setTranscribing(true);
-    setTranscript("⏳ Transcribing audio with Azure Speech-to-Text...");
+    setTranscript("â³ Transcribing audio with Azure Speech-to-Text...");
 
     try {
       const formData = new FormData();
@@ -979,7 +979,7 @@ export default function AnalysisPage() {
                     </td>
                     <td style={{ padding: "14px 18px", verticalAlign: "middle" }} onClick={(e) => e.stopPropagation()}>
                       {item.tier === "N/A" ? (
-                        <span style={{ color: "#94a3b8", fontWeight: 500 }}>—</span>
+                        <span style={{ color: "#94a3b8", fontWeight: 500 }}>â€”</span>
                       ) : item.followup_sent === 1 ? (
                         <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "11px", fontWeight: 700, color: "#047857", backgroundColor: "#ecfdf5", border: "1px solid #d1fae5", padding: "4px 8px", borderRadius: "999px" }}>
                           <Check size={13} />
@@ -1323,120 +1323,6 @@ export default function AnalysisPage() {
         </div>
       </div>
 
-      {/* Input Section */}
-      <div style={{ background: "#fff", borderRadius: 12, boxShadow: "0 1px 4px rgba(0,0,0,0.08)", border: "1px solid #e2e8f0", overflow: "hidden" }}>
-        <div style={{
-          padding: "16px 20px",
-          borderBottom: "1px solid #f1f5f9",
-          background: "#f8fafc",
-          display: "flex",
-          flexDirection: "row",
-          flexWrap: "wrap",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: "16px"
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", flex: "1 1 auto", minWidth: "250px" }}>
-            <List size={16} color="#94a3b8" />
-            <select 
-              value={selectedPersona}
-              onChange={handleTemplateSelect}
-              style={{
-                fontSize: "13px",
-                border: "1px solid #e2e8f0",
-                borderRadius: "8px",
-                padding: "8px 12px",
-                outline: "none",
-                background: "#fff",
-                width: "100%",
-                maxWidth: "320px",
-                cursor: "pointer"
-              }}
-            >
-                            {templates.map((t, i) => (
-                <option key={i} value={t.persona}>{t.persona}</option>
-              ))}
-            </select>
-          </div>
-          
-          <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
-            <input 
-              type="file" 
-              accept=".wav,.mp3,.m4a,.ogg" 
-              className="hidden" 
-              ref={audioFileInputRef} 
-              onChange={handleAudioUpload}
-            />
-            <button 
-              onClick={() => audioFileInputRef.current?.click()}
-              disabled={transcribing || loading}
-              style={{
-                background: "#fff",
-                border: "1px solid #e2e8f0",
-                borderRadius: "8px",
-                padding: "8px 16px",
-                fontSize: "13px",
-                fontWeight: 600,
-                color: "#334155",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                opacity: (transcribing || loading) ? 0.6 : 1
-              }}
-            >
-              <UploadCloud size={16} />
-              {transcribing ? "Transcribing..." : "Upload Audio"}
-            </button>
-            <button 
-              onClick={handleAnalyze}
-              disabled={loading || transcribing || !transcript.trim()}
-              style={{
-                background: (loading || transcribing || !transcript.trim()) ? "#e2e8f0" : "#1e40af",
-                color: (loading || transcribing || !transcript.trim()) ? "#94a3b8" : "#ffffff",
-                border: "none",
-                borderRadius: "8px",
-                padding: "8px 20px",
-                fontSize: "13px",
-                fontWeight: 600,
-                cursor: (loading || transcribing || !transcript.trim()) ? "not-allowed" : "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                transition: "background 0.15s ease"
-              }}
-            >
-              {loading ? (
-                <Loader2 size={16} className="animate-spin" />
-              ) : (
-                <Activity size={16} />
-              )}
-              {loading ? "Analyzing..." : transcribing ? "Transcribing..." : "Analyze Transcript"}
-            </button>
-          </div>
-        </div>
-        
-        <div style={{ padding: 0 }}>
-          <textarea
-            value={transcript}
-            onChange={(e) => setTranscript(e.target.value)}
-            placeholder="Paste your call transcript here or select a template..."
-            style={{
-              width: "100%",
-              height: "260px",
-              padding: "20px",
-              fontSize: "14px",
-              fontFamily: "monospace",
-              color: "#334155",
-              border: "none",
-              outline: "none",
-              resize: "vertical",
-              boxSizing: "border-box"
-            }}
-          />
-        </div>
-      </div>
-
       {/* Results Dashboard */}
       {result && (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "20px", marginTop: "12px", marginBottom: "12px" }}>
@@ -1715,7 +1601,7 @@ export default function AnalysisPage() {
             
             <div className="overflow-y-auto flex-1" style={{ padding: "0" }}>
 
-              {/* ── Transcript ────────────────────────────────────────────── */}
+              {/* â”€â”€ Transcript â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
               <div style={{ padding: "20px 24px 0" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
                   <FileText size={15} style={{ color: "#2563eb" }} />
@@ -1772,7 +1658,7 @@ export default function AnalysisPage() {
               </div>
 
 
-              {/* ── 1. Factual Booking Metadata ─────────────────────────── */}
+              {/* â”€â”€ 1. Factual Booking Metadata â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
               <div style={{ padding: "20px 24px 0" }}>
                 <h3 style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>1. Factual Booking Metadata</h3>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px" }}>
@@ -1792,7 +1678,7 @@ export default function AnalysisPage() {
                 </div>
               </div>
 
-              {/* ── 2. Context & Intent Signals ─────────────────────────── */}
+              {/* â”€â”€ 2. Context & Intent Signals â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
               <div style={{ padding: "20px 24px 0" }}>
                 <h3 style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>2. Context & Intent Signals</h3>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px" }}>
@@ -1830,7 +1716,7 @@ export default function AnalysisPage() {
                 </div>
               </div>
 
-              {/* ── 3. Outcomes & Lead Status ─────────────────────────── */}
+              {/* â”€â”€ 3. Outcomes & Lead Status â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
               <div style={{ padding: "20px 24px 0" }}>
                 <h3 style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>3. Outcomes & Lead Status</h3>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "8px" }}>
@@ -1854,7 +1740,7 @@ export default function AnalysisPage() {
                 </div>
               </div>
 
-              {/* ── 4. Cross-Sell Intelligence ─────────────────────────── */}
+              {/* â”€â”€ 4. Cross-Sell Intelligence â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
               <div style={{ padding: "20px 24px 0" }}>
                 <h3 style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>4. Cross-Sell Intelligence</h3>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "8px" }}>
@@ -1870,7 +1756,7 @@ export default function AnalysisPage() {
                 </div>
               </div>
 
-              {/* ── 5. Staff QA & Coaching ─────────────────────────── */}
+              {/* â”€â”€ 5. Staff QA & Coaching â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
               <div style={{ padding: "20px 24px 0" }}>
                 <h3 style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>5. Staff QA & Coaching</h3>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "8px", marginBottom: "8px" }}>
@@ -1896,14 +1782,14 @@ export default function AnalysisPage() {
                 </div>
               </div>
 
-              {/* ── 6. Computed Scoring ─────────────────────────── */}
+              {/* â”€â”€ 6. Computed Scoring â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
               <div style={{ padding: "20px 24px 0" }}>
                 <h3 style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>6. Computed Scoring</h3>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px" }}>
                   {[
                     { label: "Total Score",      value: `${selectedHistoryItem.total_score} / 100`, color: "#1d4ed8", bg: "#eff6ff", border: "#dbeafe" },
                     { label: "Priority Tier",    value: `Tier ${selectedHistoryItem.tier}`, color: "#1d4ed8", bg: "#eff6ff", border: "#dbeafe" },
-                    { label: "Est. Revenue",     value: `₹${selectedHistoryItem.estimated_revenue_inr?.toLocaleString() || 0}`, color: "#065f46", bg: "#f0fdf4", border: "#d1fae5" },
+                    { label: "Est. Revenue",     value: `â‚¹${selectedHistoryItem.estimated_revenue_inr?.toLocaleString() || 0}`, color: "#065f46", bg: "#f0fdf4", border: "#d1fae5" },
                     { label: "Intent Score",     value: `${selectedHistoryItem.intent_score} / 100`, color: "#0f172a", bg: "#f8fafc", border: "#e2e8f0" },
                     { label: "Lock-in Score",    value: `${selectedHistoryItem.lock_in_score} / 100`, color: "#0f172a", bg: "#f8fafc", border: "#e2e8f0" },
                     { label: "Revenue Score",    value: `${selectedHistoryItem.revenue_score} / 100`, color: "#0f172a", bg: "#f8fafc", border: "#e2e8f0" },
@@ -1920,7 +1806,7 @@ export default function AnalysisPage() {
                 </div>
               </div>
 
-              {/* ── AI Decision & Actions ─────────────────────────────── */}
+              {/* â”€â”€ AI Decision & Actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
               <div style={{ padding: "20px 24px" }}>
                 <h3 style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "10px" }}>AI Decision & Actions</h3>
                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
