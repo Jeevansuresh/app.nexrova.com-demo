@@ -8,8 +8,8 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "Nexrova Lead Intelligence — Oasis Reservation Call Intelligence Dashboard",
-  description: "Nexrova Lead Intelligence — real-time property funnel and front-desk semantic intelligence",
+  title: "Call Intelligence Dashboard",
+  description: "Real-time call intelligence dashboard",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -60,13 +60,12 @@ export default function AnalysisPage() {
   const [templates, setTemplates] = useState<any[]>([]);
   const [history, setHistory] = useState<any[]>([]);
   const [transcript, setTranscript] = useState("");
-  const [selectedPersona, setSelectedPersona] = useState("Custom Upload");
+  const [selectedPersona, setSelectedPersona] = useState("Reservation Closer");
   const [loading, setLoading] = useState(false);
   const [transcribing, setTranscribing] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [ingestStatus, setIngestStatus] = useState<any>(null);
   
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const audioFileInputRef = useRef<HTMLInputElement>(null);
 
   const datePreset = useStore((s: any) => s.datePreset);
@@ -96,8 +95,6 @@ export default function AnalysisPage() {
   // Local settings states for auto-send toggles
   const [pickyEnabled, setPickyEnabled] = useState(false);
   const [followupTiers, setFollowupTiers] = useState<string[]>([]);
-  const [blacklistKeywords, setBlacklistKeywords] = useState<string[]>([]);
-  const [newBlacklistKeyword, setNewBlacklistKeyword] = useState("");
   const [settingsSaving, setSettingsSaving] = useState(false);
   const [settingsSaved, setSettingsSaved] = useState(false);
 
@@ -105,7 +102,6 @@ export default function AnalysisPage() {
     if (storeSettings) {
       setPickyEnabled(!!storeSettings.picky_assist_enabled);
       setFollowupTiers(storeSettings.followup_tiers || []);
-      setBlacklistKeywords(storeSettings.blacklist_keywords || []);
     }
   }, [storeSettings]);
 
@@ -120,7 +116,6 @@ export default function AnalysisPage() {
         body: JSON.stringify({
           picky_assist_enabled: newVal,
           followup_tiers: followupTiers,
-          blacklist_keywords: blacklistKeywords,
         }),
       });
       const data = await res.json();
@@ -155,7 +150,6 @@ export default function AnalysisPage() {
         body: JSON.stringify({
           picky_assist_enabled: pickyEnabled,
           followup_tiers: updatedTiers,
-          blacklist_keywords: blacklistKeywords,
         }),
       });
       const data = await res.json();
@@ -172,48 +166,6 @@ export default function AnalysisPage() {
     } finally {
       setSettingsSaving(false);
     }
-  };
-
-  const handleUpdateBlacklist = async (updatedBlacklist: string[]) => {
-    setBlacklistKeywords(updatedBlacklist);
-    setSettingsSaving(true);
-    try {
-      const res = await fetch(`${BASE}/api/settings`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          picky_assist_enabled: pickyEnabled,
-          followup_tiers: followupTiers,
-          blacklist_keywords: updatedBlacklist,
-        }),
-      });
-      const data = await res.json();
-      if (data.status === "success" && data.settings) {
-        setSettings(data.settings);
-      } else {
-        alert("Failed to update blacklist: " + data.message);
-        setBlacklistKeywords(blacklistKeywords); // revert
-      }
-    } catch (err: any) {
-      console.error("Failed to save settings:", err);
-      alert("Failed to save settings: " + err.message);
-      setBlacklistKeywords(blacklistKeywords); // revert
-    } finally {
-      setSettingsSaving(false);
-    }
-  };
-
-  const handleAddBlacklist = () => {
-    if (!newBlacklistKeyword.trim()) return;
-    if (blacklistKeywords.includes(newBlacklistKeyword.trim())) return;
-    const updated = [...blacklistKeywords, newBlacklistKeyword.trim()];
-    setNewBlacklistKeyword("");
-    handleUpdateBlacklist(updated);
-  };
-
-  const handleRemoveBlacklist = (kw: string) => {
-    const updated = blacklistKeywords.filter(k => k !== kw);
-    handleUpdateBlacklist(updated);
   };
 
   const enquiriesCount = history.filter((item) => {
@@ -291,7 +243,7 @@ export default function AnalysisPage() {
     fetchTemplates();
     fetchIngestStatus();
     fetchSettings();
-  }, []);
+  }, [selectedPersona]);
 
   useEffect(() => {
     fetchHistory();
@@ -322,7 +274,13 @@ export default function AnalysisPage() {
       const res = await fetch(`${BASE}/api/analysis/templates`, { credentials: "include" });
       const data = await res.json();
       if (data.status === "success") {
-        setTemplates(data.data);
+        const fetchedTemplates = Array.isArray(data.data) ? data.data : [];
+        setTemplates(fetchedTemplates);
+        if (fetchedTemplates.length > 0) {
+          const current = fetchedTemplates.find((t: any) => t.persona === selectedPersona) || fetchedTemplates[0];
+          setSelectedPersona(current.persona);
+          setTranscript(current.transcript || "");
+        }
       }
     } catch (error) {
       console.error("Failed to fetch templates", error);
@@ -469,24 +427,8 @@ export default function AnalysisPage() {
   const handleTemplateSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const val = e.target.value;
     setSelectedPersona(val);
-    if (val === "Custom Upload") {
-      setTranscript("");
-    } else {
-      const tmpl = templates.find((t) => t.persona === val);
-      if (tmpl) setTranscript(tmpl.transcript);
-    }
-  };
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setTranscript(event.target?.result as string);
-        setSelectedPersona("Custom Upload");
-      };
-      reader.readAsText(file);
-    }
+    const tmpl = templates.find((t) => t.persona === val);
+    if (tmpl) setTranscript(tmpl.transcript);
   };
 
   const handleAudioUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -494,7 +436,6 @@ export default function AnalysisPage() {
     if (!file) return;
 
     setTranscribing(true);
-    setSelectedPersona("Custom Upload");
     setTranscript("⏳ Transcribing audio with Azure Speech-to-Text...");
 
     try {
@@ -1382,103 +1323,6 @@ export default function AnalysisPage() {
         </div>
       </div>
 
-      {/* Blacklist Configuration Card */}
-      <div style={{ background: "#fff", borderRadius: 12, boxShadow: "0 1px 4px rgba(0,0,0,0.08)", padding: "18px 20px", border: "1px solid #e2e8f0", display: "flex", flexDirection: "column", gap: 14 }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-            <h2 style={{ fontSize: 14, fontWeight: 700, color: "#0f172a", margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#ef4444", display: "inline-block" }} />
-              Blacklisted Keywords
-            </h2>
-            <p style={{ fontSize: 12, color: "#64748b", margin: 0 }}>
-              Files containing any of these keywords in their filename will be completely ignored during call ingestion to save STT tokens.
-            </p>
-          </div>
-        </div>
-
-        {/* Divider */}
-        <div style={{ height: "1px", background: "#f1f5f9" }} />
-
-        {/* Blacklist Input & List */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <input
-              type="text"
-              placeholder="e.g. Manager, Operation, Spam"
-              value={newBlacklistKeyword}
-              onChange={(e) => setNewBlacklistKeyword(e.target.value)}
-              disabled={settingsSaving}
-              onKeyDown={(e) => e.key === 'Enter' && handleAddBlacklist()}
-              style={{
-                padding: "8px 12px",
-                border: "1px solid #e2e8f0",
-                borderRadius: "8px",
-                fontSize: "13px",
-                outline: "none",
-                width: "250px"
-              }}
-            />
-            <button
-              onClick={handleAddBlacklist}
-              disabled={settingsSaving || !newBlacklistKeyword.trim()}
-              style={{
-                padding: "8px 16px",
-                backgroundColor: "#2563eb",
-                color: "#fff",
-                border: "none",
-                borderRadius: "8px",
-                fontSize: "13px",
-                fontWeight: 600,
-                cursor: (settingsSaving || !newBlacklistKeyword.trim()) ? "not-allowed" : "pointer",
-                opacity: (settingsSaving || !newBlacklistKeyword.trim()) ? 0.6 : 1
-              }}
-            >
-              Add
-            </button>
-          </div>
-
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-            {blacklistKeywords.length === 0 ? (
-              <span style={{ fontSize: 12, color: "#94a3b8", fontStyle: "italic" }}>No keywords blacklisted yet.</span>
-            ) : (
-              blacklistKeywords.map((kw) => (
-                <div key={kw} style={{
-                  display: "flex", alignItems: "center", gap: 6,
-                  padding: "4px 8px 4px 12px",
-                  backgroundColor: "#fee2e2",
-                  border: "1px solid #fecaca",
-                  borderRadius: "999px",
-                  fontSize: "12px",
-                  fontWeight: 600,
-                  color: "#991b1b"
-                }}>
-                  {kw}
-                  <button
-                    onClick={() => handleRemoveBlacklist(kw)}
-                    disabled={settingsSaving}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      color: "#ef4444",
-                      cursor: settingsSaving ? "not-allowed" : "pointer",
-                      padding: "2px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      borderRadius: "50%"
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(239,68,68,0.1)"}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
-                  >
-                    <X size={14} />
-                  </button>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      </div>
-
       {/* Input Section */}
       <div style={{ background: "#fff", borderRadius: 12, boxShadow: "0 1px 4px rgba(0,0,0,0.08)", border: "1px solid #e2e8f0", overflow: "hidden" }}>
         <div style={{
@@ -1509,42 +1353,13 @@ export default function AnalysisPage() {
                 cursor: "pointer"
               }}
             >
-              <option value="Custom Upload">Custom Upload (Paste / File)</option>
-              {templates.map((t, i) => (
+                            {templates.map((t, i) => (
                 <option key={i} value={t.persona}>{t.persona}</option>
               ))}
             </select>
           </div>
           
           <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
-            <input 
-              type="file" 
-              accept=".txt,.md" 
-              className="hidden" 
-              ref={fileInputRef} 
-              onChange={handleFileUpload}
-            />
-            <button 
-              onClick={() => fileInputRef.current?.click()}
-              disabled={transcribing || loading}
-              style={{
-                background: "#fff",
-                border: "1px solid #e2e8f0",
-                borderRadius: "8px",
-                padding: "8px 16px",
-                fontSize: "13px",
-                fontWeight: 600,
-                color: "#334155",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                opacity: (transcribing || loading) ? 0.6 : 1
-              }}
-            >
-              <UploadCloud size={16} />
-              Upload .txt
-            </button>
             <input 
               type="file" 
               accept=".wav,.mp3,.m4a,.ogg" 

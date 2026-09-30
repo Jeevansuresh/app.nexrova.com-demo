@@ -12,14 +12,13 @@ type GapKey =
   | "closing"
   | "other";
 
-const TRANSCRIPT = `Aria: Welcome to Oasis reservations.
-Guest: Hi, I need rooms for next weekend.
-Aria: Certainly. May I know check-in date and number of rooms?
-Guest: 12th October, maybe 2 rooms.
-Aria: Great, I can offer our deluxe plan with breakfast.
-Guest: Okay, send me details on WhatsApp.`;
-
-const LONG_BILINGUAL_TRANSCRIPT_CALLS = 12;
+const TRANSCRIPT = `Aria: வணக்கம்! Oasis reservations desk. This is Aria speaking.
+Guest: ஹலோ Aria, next weekend-ku family stay plan pannrom. 2 rooms தேவை.
+Aria: Sure sir, check-in date and total guests சொல்லுங்க.
+Guest: 12th October check-in, 14th October checkout, total 5 adults + 1 kid.
+Aria: Great. Breakfast, early check-in request, and flexible cancellation options available.
+Guest: Super, rate konjam share pannunga. If value good, naanga immediate confirm pannuvom.
+Aria: Done. I’ll send detailed quote, room photos, and payment link on WhatsApp in 5 mins.`;
 
 type TranscriptBundle = {
   full: string;
@@ -40,54 +39,67 @@ function buildTranscriptBundle(params: {
 }): TranscriptBundle {
   const propertyLabel = PROPERTY_LABELS[params.property] || params.property;
   const stayLine = `${params.rooms} room${params.rooms > 1 ? "s" : ""}, ${params.nights} night${params.nights > 1 ? "s" : ""}`;
+  const occasion = ["family trip", "corporate offsite", "wedding function", "temple visit", "medical visit", "college reunion"][params.index % 6];
+  const budgetBand = ["₹6k-8k", "₹8k-10k", "₹10k-12k", "₹12k+", "value package", "corporate slab"][params.index % 6];
+  const urgency = ["same-day confirmation", "within 2 hours", "before evening", "today EOD", "by tonight", "immediate hold request"][params.index % 6];
 
-  if (params.index >= LONG_BILINGUAL_TRANSCRIPT_CALLS) {
-    const englishOnly = `${TRANSCRIPT}
-[System]: Property=${propertyLabel}; Outcome=${params.outcome}; Stay=${stayLine}; Revenue=INR ${params.estimatedRevenue.toLocaleString("en-IN")};`;
-    return {
-      full: englishOnly,
-      original: englishOnly,
-      english: englishOnly,
-    };
-  }
-
-  const originalTamil = [
-    `Aria: Vanakkam! ${propertyLabel} reservations desk-ku call pannathukku nandri. Naan Aria pesuren.`,
-    `Guest: Vanakkam Aria, naan ${params.callerName}. ${params.checkinDate} check-in panni ${params.checkoutDate} varai stay venum.`,
-    `Aria: Sure sir/madam, ungal requirement note panniten. ${stayLine} requirement confirm aagiduchu.`,
-    `Guest: Family oda travel pannrom. Pasanga-kku breakfast and extra bed options irukka?`,
-    `Aria: Irukku. Deluxe and Premium categories-la complimentary breakfast, Wi-Fi, and early check-in request support kudukrom.`,
-    `Guest: Rate epdi irukkum? Last year vandhapo konjam kammi rate irundhuchu.`,
-    `Aria: Indha week demand adhigam, aana long-stay value package-la complimentary dinner voucher add panna mudiyum.`,
-    `Guest: Nalla irukku. Cancellation policy and advance payment details sollunga.`,
-    `Aria: Arrival-ku 48 mani neram munnadi free cancellation. Booking lock panna 30% advance podhum.`,
-    `Guest: Super. Room photos, package breakup, and quotation WhatsApp-la share pannunga.`,
-    `Aria: Kandippa. Call mudinja udane inclusions list, payment link, and follow-up timeline anuppuren.`,
-    `Guest: Naan spouse kitta discuss pannitu rendu mani nerathula confirm panren.`,
-    `Aria: Perfect, indha lead-ai high-intent queue-la mark panni callback reminder set panren.`,
-    `[System]: Property=${propertyLabel}; Outcome=${params.outcome}; Stay=${stayLine}; EstimatedRevenue=INR ${params.estimatedRevenue.toLocaleString("en-IN")}.`,
+  const originalTamilMixed = [
+    `Aria: வணக்கம்! ${propertyLabel} reservations-ku welcome. Naan Aria pesuren.`,
+    `Guest: ஹலோ Aria, naan ${params.callerName}. ${params.checkinDate} check-in, ${params.checkoutDate} checkout plan pannirukkom.`,
+    `Aria: Kandippa. Stay requirement note panniten — ${stayLine}. Total guests and travel purpose confirm pannalama?`,
+    `Guest: Approx ${params.rooms + 2} members. Idhu ${occasion} trip, so rooms clean-a irukkanum and check-in smooth-a venum.`,
+    `Aria: Sure. Deluxe/Premium categories-la central AC, breakfast buffet, hi-speed Wi‑Fi, 24x7 hot water, lift access ellam include pannrom.`,
+    `Guest: Nice. My parents senior citizens; ground floor or lift-near room கிடைக்குமா?`,
+    `Aria: கிடைக்கும். Wheelchair-friendly route and less walking distance rooms note pannuren.`,
+    `Guest: Rate-wise konjam clarify pannunga. Budget roughly ${budgetBand} range-la irukkanum.`,
+    `Aria: Ippo demand high irukku, but long-stay bundle + meal credit சேர்த்து better value kudukka mudiyum.`,
+    `Guest: Hidden charges irukka? GST, extra bed, early check-in charge separate-a?`,
+    `Aria: Transparent pricing only. GST split, extra bed slab, early check-in subject-to-availability nu quote-la line by line share pannuren.`,
+    `Guest: Corporate invoice venum-na company GSTIN add pannalaama?`,
+    `Aria: ஆம், billing team same-day proforma and final GST invoice arrange panniduvaanga.`,
+    `Guest: Cancellation policy enna? Last-minute plan change aana penalty avoid panna try pannrom.`,
+    `Aria: Check-in-ku 48 hours munnadi free cancellation. After that one-night retention; rest refundable policy apply aagum.`,
+    `Guest: Super. Please include breakfast timings, parking, kids meal options, and nearby transport info too.`,
+    `Aria: Sure. WhatsApp-la room photos, inclusion matrix, map pin, and sample itinerary anuppuren.`,
+    `Guest: Nalla irukku. En spouse kooda discuss panni ${urgency} final confirmation kudukren.`,
+    `Aria: Perfect. I’m marking this lead as high-intent, rate hold for limited window, and callback reminder set pannuren.`,
+    `Guest: Great support, thanks Aria. Message vandhadum advance payment initiate pannrom.`,
+    `Aria: Thank you! Quick follow-up panren.`,
+    `[System]: Property=${propertyLabel}; Outcome=${params.outcome}; Stay=${stayLine}; RevenuePotential=INR ${params.estimatedRevenue.toLocaleString("en-IN")}; Intent=High; TranscriptStyle=tamil-english-mixed-realistic.`,
   ].join("\n");
 
   const englishTranslation = [
     `Aria: Hello and welcome to ${propertyLabel} reservations. This is Aria speaking.`,
-    `Guest: Hi Aria, this is ${params.callerName}. I need a stay from ${params.checkinDate} to ${params.checkoutDate}.`,
-    `Aria: Perfect, I have noted your requirement for ${stayLine}.`,
-    `Guest: I am travelling with family. Do you have breakfast and extra bed options for children?`,
-    `Aria: Yes. Deluxe and Premium categories include breakfast, high-speed Wi-Fi, and early check-in request support.`,
-    `Guest: What are the rates? Last year the pricing was slightly lower.`,
-    `Aria: Demand is higher this week, but I can include a long-stay value package with a complimentary dinner voucher.`,
-    `Guest: Sounds good. Please explain your cancellation and advance payment policy.`,
-    `Aria: Free cancellation is available up to 48 hours before arrival. Only 30% advance is needed to lock booking.`,
-    `Guest: Great. Please send room photos, package breakup, and a quotation on WhatsApp.`,
-    `Aria: Absolutely. I will send inclusions, payment link, and follow-up timeline right after this call.`,
-    `Guest: I will check with my spouse and confirm within two hours.`,
-    `Aria: Perfect, I am marking this as a high-intent lead and setting a callback reminder.`,
-    `[System]: Property=${propertyLabel}; Outcome=${params.outcome}; Stay=${stayLine}; EstimatedRevenue=INR ${params.estimatedRevenue.toLocaleString("en-IN")}.`,
+    `Guest: Hi Aria, this is ${params.callerName}. We are planning check-in on ${params.checkinDate} and checkout on ${params.checkoutDate}.`,
+    `Aria: Certainly. I have noted your requirement — ${stayLine}. May I confirm total guests and travel purpose?`,
+    `Guest: We are around ${params.rooms + 2} members. This is a ${occasion}, so we need clean rooms and a smooth check-in process.`,
+    `Aria: Of course. Deluxe/Premium categories include central AC, breakfast buffet, high-speed Wi‑Fi, 24x7 hot water, and lift access.`,
+    `Guest: Nice. My parents are senior citizens; can we get rooms near the lift or with easy access?`,
+    `Aria: Yes, we can assign a low-mobility-friendly room cluster and note wheelchair routing.`,
+    `Guest: Please clarify rates too. Our budget is around ${budgetBand}.`,
+    `Aria: Demand is currently high, but I can include a long-stay bundle and meal credits to improve total value.`,
+    `Guest: Any hidden charges? Please specify GST, extra bed cost, and early check-in terms.`,
+    `Aria: We share transparent line-item pricing. GST split, extra-bed slab, and early check-in conditions will be listed in the quote.`,
+    `Guest: If needed, can you issue a corporate GST invoice?`,
+    `Aria: Yes, billing can issue both proforma and final GST invoice on the same day.`,
+    `Guest: What is your cancellation policy? We want flexibility in case plans change.`,
+    `Aria: Free cancellation until 48 hours before check-in. After that, one-night retention applies and the remainder is refundable as per policy.`,
+    `Guest: Great. Please include breakfast timings, parking details, kids meal options, and nearby transport notes.`,
+    `Aria: Sure. I’ll send room photos, inclusion matrix, map pin, and a sample itinerary on WhatsApp.`,
+    `Guest: Sounds good. I’ll confirm ${urgency} after discussing with my spouse.`,
+    `Aria: Perfect. I’m tagging this as high-intent, applying a short rate hold, and setting a callback reminder.`,
+    `Guest: Excellent support, thanks Aria. We’ll initiate advance payment once we receive the quote.`,
+    `Aria: Thank you. I’ll follow up shortly.`,
+    `[System]: Property=${propertyLabel}; Outcome=${params.outcome}; Stay=${stayLine}; RevenuePotential=INR ${params.estimatedRevenue.toLocaleString("en-IN")}; Intent=High; TranscriptStyle=tamil-english-mixed-realistic.`,
   ].join("\n");
 
   return {
-    full: `POLISHED ORIGINAL TRANSCRIPT\n${originalTamil}\n\nENGLISH TRANSLATED TRANSCRIPT\n${englishTranslation}`,
-    original: originalTamil,
+    full: `POLISHED ORIGINAL TRANSCRIPT
+${originalTamilMixed}
+
+ENGLISH TRANSLATED TRANSCRIPT
+${englishTranslation}`,
+    original: originalTamilMixed,
     english: englishTranslation,
   };
 }
@@ -203,8 +215,32 @@ function hourBucket(ts: string): string {
 function createRow(index: number): AnyRecord {
   const now = new Date();
   const todayIst = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(now);
-  const hour = 8 + (index % 15);
-  const minute = (index * 7) % 60;
+
+  const callWindows = [
+    { hour: 9, minutes: [5, 14, 23, 35, 48] },
+    { hour: 11, minutes: [6, 18, 31, 44, 56] },
+    { hour: 13, minutes: [12, 27, 41, 53] },
+    { hour: 16, minutes: [3, 16, 28, 39, 52] },
+    { hour: 19, minutes: [7, 19, 33, 46, 57] },
+  ];
+
+  const totalWindowCapacity = callWindows.reduce((sum, bucket) => sum + bucket.minutes.length, 0);
+  const normalizedIndex = ((index % totalWindowCapacity) + totalWindowCapacity) % totalWindowCapacity;
+
+  let cursor = 0;
+  let hour = 9;
+  let minute = 0;
+
+  for (const bucket of callWindows) {
+    const nextCursor = cursor + bucket.minutes.length;
+    if (normalizedIndex < nextCursor) {
+      hour = bucket.hour;
+      minute = bucket.minutes[normalizedIndex - cursor];
+      break;
+    }
+    cursor = nextCursor;
+  }
+
   const ts = `${todayIst}T${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}:00+05:30`;
   const property = (["gandhi", "ridhi", "qbyk"] as const)[index % 3];
   const segment = SEGMENTS[index % SEGMENTS.length];
@@ -1593,7 +1629,7 @@ async function routeHandler(req: NextRequest, method: string): Promise<NextRespo
 
       return json({
         status: "success",
-        persona: payload.persona || "Custom Upload",
+        persona: payload.persona || "Reservation Closer",
         signals: {
           rooms_requested: sample.rooms_requested,
           stay_duration: sample.nights,
