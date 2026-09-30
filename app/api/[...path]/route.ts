@@ -123,6 +123,35 @@ const PROPERTY_LABELS: Record<string, string> = {
 const SEGMENTS = ["family", "corporate", "wedding", "solo", "group", "long_stay"] as const;
 const LOSS_REASONS = ["price_too_high", "no_rooms_available", "competitor_offer", "no_followup"] as const;
 
+const IST_HOUR_FORMATTER = new Intl.DateTimeFormat("en-GB", {
+  timeZone: "Asia/Kolkata",
+  hour: "2-digit",
+  hourCycle: "h23",
+});
+
+const CALLER_DIRECTORY = [
+  { name: "Arjun Narayanan", phone: "+91 98400 21001" },
+  { name: "Meera Krishnan", phone: "+91 98400 21002" },
+  { name: "Karthik Iyer", phone: "+91 98400 21003" },
+  { name: "Lakshmi Subramanian", phone: "+91 98400 21004" },
+  { name: "Pranav Reddy", phone: "+91 98400 21005" },
+  { name: "Anitha Nair", phone: "+91 98400 21006" },
+  { name: "Siddharth Rao", phone: "+91 98400 21007" },
+  { name: "Divya Srinivasan", phone: "+91 98400 21008" },
+  { name: "Vignesh Kumar", phone: "+91 98400 21009" },
+  { name: "Harini Balasubramanian", phone: "+91 98400 21010" },
+  { name: "Naveen Raj", phone: "+91 98400 21011" },
+  { name: "Keerthana Menon", phone: "+91 98400 21012" },
+  { name: "Madhan Prakash", phone: "+91 98400 21013" },
+  { name: "Sneha Venkatesh", phone: "+91 98400 21014" },
+  { name: "Vasanth Pillai", phone: "+91 98400 21015" },
+  { name: "Aarav Sharma", phone: "+91 98100 23001" },
+  { name: "Riya Malhotra", phone: "+91 98100 23002" },
+  { name: "Kabir Singh", phone: "+91 98100 23003" },
+  { name: "Isha Verma", phone: "+91 98100 23004" },
+  { name: "Rohan Tiwari", phone: "+91 98100 23005" },
+] as const;
+
 let SETTINGS: AnyRecord = {
   escalation_number: "+91 98765 00123",
   followup_interval_hours: 4,
@@ -207,9 +236,13 @@ function normalizeProperty(raw: string | null): string | null {
 
 function hourBucket(ts: string): string {
   const date = new Date(ts);
-  const hour = date.getHours();
-  const next = (hour + 1) % 24;
-  return `${String(hour).padStart(2, "0")}:00-${String(next).padStart(2, "0")}:00`;
+  if (Number.isNaN(date.getTime())) return "00:00-01:00";
+
+  const hourPart = IST_HOUR_FORMATTER.formatToParts(date).find((part) => part.type === "hour")?.value || "00";
+  const hour = Number.parseInt(hourPart, 10);
+  const safeHour = Number.isFinite(hour) ? hour : 0;
+  const next = (safeHour + 1) % 24;
+  return `${String(safeHour).padStart(2, "0")}:00-${String(next).padStart(2, "0")}:00`;
 }
 
 function createRow(index: number): AnyRecord {
@@ -282,22 +315,9 @@ function createRow(index: number): AnyRecord {
 
   const id = index + 1;
   const callUuid = `call_${String(id).padStart(4, "0")}`;
-  const callerName = [
-    "Aarav Shah",
-    "Mira Kapoor",
-    "Rohan Batra",
-    "Ananya Mehta",
-    "Dev Khanna",
-    "Priyanka Sen",
-    "Kabir Jain",
-    "Ira Joshi",
-    "Samar Gill",
-    "Nisha Rao",
-    "Arjun Patel",
-    "Neha Bedi",
-  ][index % 12];
-
-  const callerPhone = `+91 98980 ${String(11000 + (index % 90)).padStart(5, "0")}`;
+  const callerProfile = CALLER_DIRECTORY[index % CALLER_DIRECTORY.length];
+  const callerName = callerProfile.name;
+  const callerPhone = callerProfile.phone;
   const checkinDate = checkin ? day(checkin.toISOString()) : null;
   const checkoutDate = checkout ? day(checkout.toISOString()) : null;
   const stayDates = checkinDate && checkoutDate ? `${checkinDate} to ${checkoutDate}` : "N/A";
@@ -1084,29 +1104,35 @@ function buildDailyResponse(req: NextRequest, rows: AnyRecord[]): AnyRecord {
     };
   });
 
-  const pendingFollowups = rows
+  const pendingFollowupRows = rows
     .filter((row) => row.needs_followup === 1 && row.followup_sent === 0)
-    .sort((a, b) => safeNum(b.intent_score) - safeNum(a.intent_score))
-    .slice(0, 18)
-    .map((row) => ({
-      call_id: row.call_uuid,
-      guest_name: row.caller_name,
-      guest_phone: row.caller_phone,
-      intent_score: row.intent_score,
-      call_timestamp: row.call_timestamp,
-    }));
+    .sort((a, b) => safeNum(b.intent_score) - safeNum(a.intent_score));
 
-  const completedFollowups = rows
+  const pendingFollowups = pendingFollowupRows.slice(0, 18).map((row) => ({
+    call_id: row.call_uuid,
+    guest_name: row.caller_name,
+    guest_phone: row.caller_phone,
+    intent_score: row.intent_score,
+    call_timestamp: row.call_timestamp,
+  }));
+
+  const completedFollowupRows = rows
     .filter((row) => row.followup_sent === 1)
-    .sort((a, b) => String(b.call_timestamp).localeCompare(String(a.call_timestamp)))
-    .slice(0, 18)
-    .map((row) => ({
-      call_id: row.call_uuid,
-      guest_name: row.caller_name,
-      guest_phone: row.caller_phone,
-      intent_score: row.intent_score,
-      call_timestamp: row.call_timestamp,
-    }));
+    .sort((a, b) => String(b.call_timestamp).localeCompare(String(a.call_timestamp)));
+
+  const completedFollowups = completedFollowupRows.slice(0, 18).map((row) => ({
+    call_id: row.call_uuid,
+    guest_name: row.caller_name,
+    guest_phone: row.caller_phone,
+    intent_score: row.intent_score,
+    call_timestamp: row.call_timestamp,
+  }));
+
+  const rowsByCallTimeAsc = [...rows].sort((a, b) =>
+    String(a.call_timestamp || a.created_at).localeCompare(String(b.call_timestamp || b.created_at))
+  );
+  const firstCall = rowsByCallTimeAsc[0];
+  const lastCall = rowsByCallTimeAsc[rowsByCallTimeAsc.length - 1];
 
   const lostReasons = buildLostReasons(rows);
   const guestRequests = buildGuestRequests(rows);
@@ -1143,15 +1169,15 @@ function buildDailyResponse(req: NextRequest, rows: AnyRecord[]): AnyRecord {
       bookings_won: won.length,
       conversion_rate_pct: metrics.conversionRate,
       avg_call_duration_seconds: metrics.avgDuration,
-      followups_assigned: pendingFollowups.length,
-      followups_completed: completedFollowups.length,
+      followups_assigned: pendingFollowupRows.length,
+      followups_completed: completedFollowupRows.length,
     },
     glance: {
       peak_call_hour: peakHourEntry.hour,
       avg_call_duration: `${metrics.avgDuration}s`,
-      first_call_time: rows[rows.length - 1]?.call_timestamp || "N/A",
-      last_call_time: rows[0]?.call_timestamp || "N/A",
-      pending_followups_count: pendingFollowups.length,
+      first_call_time: firstCall?.call_timestamp || firstCall?.created_at || "N/A",
+      last_call_time: lastCall?.call_timestamp || lastCall?.created_at || "N/A",
+      pending_followups_count: pendingFollowupRows.length,
     },
     outcome_breakdown: outcomeBreakdown,
     hourly_calls: {
@@ -1162,7 +1188,7 @@ function buildDailyResponse(req: NextRequest, rows: AnyRecord[]): AnyRecord {
     hourly_conversion: { hourly_rates: hourlyRates },
     insights: [
       `Calls audited: ${rows.length}. Peak activity in ${peakHourEntry.hour}.`,
-      `Conversion currently at ${metrics.conversionRate}% with ${pendingFollowups.length} follow-up opportunities open.`,
+      `Conversion currently at ${metrics.conversionRate}% with ${pendingFollowupRows.length} follow-up opportunities open.`,
       "Lost bookings are concentrated in pricing objections and soft closing.",
     ],
     coaching_tip:
@@ -1349,7 +1375,7 @@ function insightPayload(rows: AnyRecord[]) {
       },
       {
         title: "Opportunity",
-        description: "Cross-sell offered rate improved in Gandhi property.",
+        description: "Cross-sell offered rate improved in the primary property cluster.",
         type: "opportunity",
         level: "low",
       },
@@ -1746,7 +1772,7 @@ async function routeHandler(req: NextRequest, method: string): Promise<NextRespo
 
     if (b === "bleeding" && method === "GET") {
       const filtered = rows
-        .filter((row) => row.outcome === "lost")
+        .filter((row) => row.outcome === "followup_needed" && row.needs_followup === 1 && row.followup_sent === 0)
         .sort((left, right) => safeNum(right.estimated_revenue_inr) - safeNum(left.estimated_revenue_inr))
         .slice(0, 120)
         .map(toCoachRow);

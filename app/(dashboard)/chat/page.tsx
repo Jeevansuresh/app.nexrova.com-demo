@@ -43,7 +43,7 @@ const STARTER_PROMPTS = [
   "How many calls were logged today?",
   "Show me all lost bookings this week and why they were lost",
   "Which leads have the highest intent score right now?",
-  "What's our conversion rate for Gandhi property this month?",
+  "What's our conversion rate for our primary property cluster this month?",
   "Show me all pending follow-ups sorted by priority",
   "Which agent gaps are appearing most frequently?",
 ];
